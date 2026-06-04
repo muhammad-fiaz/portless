@@ -22,8 +22,9 @@
 + "dev": "portless run next dev"       # https://myapp.localhost
 ```
 
-> **This project is inspired by [vercel-labs/portless](https://github.com/vercel-labs/portless).**
-> Portless is an independent Rust-native reimplementation, not a fork. All credit for the original concept and design goes to the [Vercel Labs](https://github.com/vercel-labs) team.
+> [!NOTE]
+> This project concept is inspired by [vercel-labs/portless](https://github.com/vercel-labs/portless).
+> Portless is an independent Rust-native reimplementation, not a fork. All credits go to the [Vercel Labs](https://github.com/vercel-labs) team for the original concept and design.
 
 ## Why Portless?
 
