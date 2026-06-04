@@ -1,0 +1,221 @@
+# ─────────────────────────────────────────────────────────────────────
+# portless .gitignore
+# Covers: Windows, macOS, Linux
+# ─────────────────────────────────────────────────────────────────────
+
+# ── Cargo build output ───────────────────────────────────────────────
+/target/
+**/target/
+**/target-*/
+Cargo.lock
+# Keep the lockfile for binaries and workspaces (we publish a binary).
+# Comment the next line if you want to ignore the lockfile in this repo.
+!Cargo.lock
+
+# ── Per-target working directories ───────────────────────────────────
+.cargo/
+.cargo-config.toml
+.cross/
+.criterion_tmp/
+
+# ── Generated docs ───────────────────────────────────────────────────
+/docs/book/
+/site/
+/public/
+**/doc/
+**/rust-api/
+
+# ── Logs (per-app child output lives here) ───────────────────────────
+# The state dir holds the per-app logs at runtime:
+#   Linux:   $XDG_DATA_HOME/portless/logs/
+#   macOS:   ~/Library/Application Support/portless/logs/
+#   Windows: %APPDATA%\portless\logs\
+# We also ignore any local /logs/ folders next to source files.
+*.log
+*.log.*
+*.log.gz
+*.log.1
+*.log.2
+*.log.3
+/logs/
+/logs/*.log
+/logs/*.log.*
+**/logs/
+**/logs/*.log
+**/logs/*.log.*
+# But keep CHANGELOG and README log references intact.
+!CHANGELOG.md
+!README.md
+!docs/**/*.md
+
+# ── OS junk ──────────────────────────────────────────────────────────
+# macOS
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+# Linux
+.Trash-*
+nohup.out
+*~
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_view.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# ── Editors / IDEs ───────────────────────────────────────────────────
+# IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+# VS Code
+.vscode/
+.vscode-test/
+.vscode-ftp-sync.json
+.code-workspace
+.history/
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+# Sublime / TextMate
+*.sublime-project
+*.sublime-workspace
+.tmtags
+.tags
+# Vim / Emacs
+*.swp
+*.swo
+*.swn
+*~
+.\#*
+\#*\#
+\#*\#
+.ctags
+.ctags.lock
+GPATH
+GRTAGS
+GSYMS
+GTAGS
+# Helix
+.helix/
+# Zed
+.zed/
+
+# ── Tooling state ────────────────────────────────────────────────────
+# rust-analyzer
+.rust-analyzer/
+rust-project.json
+rust-analyzer/
+# sccache
+.sccache/
+# cargo nextest
+.nextest/
+# cargo deny
+deny.toml.bak
+# cargo workspace plugins
+.cargo-ok
+
+# ── Profiling & coverage ─────────────────────────────────────────────
+/coverage/
+*.profraw
+*.profdata
+*.gcda
+*.gcno
+/coverage.txt
+/coverage.xml
+lcov.info
+*.lcov
+/grcov/
+
+# ── Local environment / secrets ──────────────────────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+*.pem.bak
+*.key.bak
+secrets/
+config.local.toml
+config.local.yaml
+config.local.json
+
+# ── Test artifacts ───────────────────────────────────────────────────
+*.tmp
+*.bak
+*.orig
+*.rej
+*.swp
+.DS_Store
+core.*
+core
+crash-*.log
+stack-trace-*.txt
+hs_err_pid*.log
+*.dmp
+*.dSYM/
+*.dSYM.zip
+*.pdb
+*.ilk
+*.exp
+*.lib
+*.pdb
+*.idb
+
+# ── Node tooling (for the docs site) ─────────────────────────────────
+node_modules/
+.npm/
+.eslintcache
+.stylelintcache
+.parcel-cache/
+.cache/
+.yarn/
+.yarn-error.log
+.pnp.*
+.pnp.js
+.pnp.cjs
+.pnp.loader.mjs
+
+# ── OS / shell specific ──────────────────────────────────────────────
+# Windows
+[Bb]in/
+[Oo]bj/
+_ReSharper*/
+*.[Pp]ublish.xml
+*.pfx
+*.publishsettings
+# macOS
+.AppleDouble
+# Linux
+.fuse_hidden*
+
+# ── Portless state and dev artifacts ─────────────────────────────────
+# The state directory holds the local CA, the route registry, and the
+# per-app logs. It is recreated automatically on first run.
+/.portless/
+/.portless-test/
+*.portless-state/
+**/.portless/
+**/.portless-test/
+
+# ── Local build output for the example starter ───────────────────────
+examples/starter/target/
+examples/starter/Cargo.lock
+# Other examples (when added) -- uncomment as you add more
+# examples/*/target/
+# examples/*/Cargo.lock

@@ -1,0 +1,107 @@
+name: Docs
+
+# Builds the documentation site (mdbook user guide + cargo doc Rust API
+# reference) and deploys it to GitHub Pages, which serves the project
+# site at https://muhammad-fiaz.github.io/portless/.
+#
+# We use the modern `actions/deploy-pages` flow: build the static site
+# into `./site/`, upload it as a Pages artifact, then let the
+# `github-pages` environment publish it. No `gh-pages` branch is touched.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+# Pull-request builds only verify; only push to `main` (or manual
+# dispatch) actually deploys.
+concurrency:
+  group: docs-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTDOCFLAGS: "-D warnings"
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    name: Build documentation site
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Cache cargo registry & target
+        uses: Swatinem/rust-cache@v2
+
+      - name: Show toolchain
+        run: |
+          rustc --version
+          cargo --version
+
+      - name: Install mdbook (pinned version)
+        uses: taiki-e/install-action@mdbook
+        with:
+          version: 0.4.43
+
+      - name: Install mdbook-mermaid (optional preprocessor)
+        uses: taiki-e/install-action@mdbook-mermaid
+        with:
+          version: 0.13.0
+
+      - name: Build the user guide (mdbook)
+        run: mdbook build
+        working-directory: docs
+
+      - name: Build cargo doc (Rust API reference)
+        run: cargo doc --no-deps --all-features --target-dir target
+
+      - name: Combine mdbook + cargo doc into ./site
+        run: |
+          rm -rf site
+          mkdir -p site
+          cp -R docs/book/. site/
+          mkdir -p site/rust-api
+          cp -R target/doc/. site/rust-api/
+
+      - name: Inject GitHub Pages nojekyll
+        run: touch site/.nojekyll
+
+      - name: Add CNAME (uncomment + edit if you want a custom domain)
+        run: |
+          # Uncomment and edit the next line to point the docs site at
+          # a custom domain. The workflow will then publish a CNAME
+          # file in the Pages artifact.
+          # echo "portless.dev" > site/CNAME
+          echo "no CNAME configured"
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    name: Deploy to GitHub Pages
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

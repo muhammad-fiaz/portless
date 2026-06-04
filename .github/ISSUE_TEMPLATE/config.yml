@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Portless Discussions
+    url: https://github.com/muhammad-fiaz/portless/discussions
+    about: Ask questions, share ideas, and discuss with the community.
+  - name: Portless Website
+    url: https://muhammad-fiaz.github.io/portless
+    about: Project website and documentation
+  - name: Contact maintainer
+    url: https://pay.muhammadfiaz.com
+    about: For private inquiries, security disclosures, or commercial support.

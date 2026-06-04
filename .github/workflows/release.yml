@@ -1,0 +1,320 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+# Required for creating GitHub releases, uploading assets, and
+# publishing to GitHub Pages. The token is automatically provided by
+# GitHub Actions; we export it as `GH_TOKEN` for any tooling that
+# prefers that name.
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+env:
+  CARGO_TERM_COLOR: always
+  RUSTFLAGS: -D warnings
+  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  build:
+    name: build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            binary: portless-linux-amd64
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            binary: portless-linux-arm64
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            binary: portless-macos-amd64
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            binary: portless-macos-arm64
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            binary: portless-windows-amd64.exe
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            binary: portless-windows-arm64.exe
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Install cross-compilation tools (Linux ARM64)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc" >> $GITHUB_ENV
+
+      - name: Build release
+        run: |
+          cargo build \
+            --release \
+            --target ${{ matrix.target }} \
+            --bin portless
+
+      - name: Strip binary (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          strip target/${{ matrix.target }}/release/portless || true
+
+      - name: Package (Unix)
+        if: runner.os != 'Windows'
+        run: |
+          mkdir -p dist
+          cp target/${{ matrix.target }}/release/portless dist/${{ matrix.binary }}
+          cd dist && tar -czf ${{ matrix.binary }}.tar.gz ${{ matrix.binary }}
+          cd dist && sha256sum ${{ matrix.binary }}.tar.gz > ${{ matrix.binary }}.tar.gz.sha256
+
+      - name: Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path dist -Force | Out-Null
+          Copy-Item target/${{ matrix.target }}/release/portless.exe dist/${{ matrix.binary }}
+          Compress-Archive -Path dist/${{ matrix.binary }} -DestinationPath dist/${{ matrix.binary }}.zip
+          cd dist
+          $hash = (Get-FileHash -Algorithm SHA256 ${{ matrix.binary }}.zip).Hash.ToLower()
+          Set-Content -Path "${{ matrix.binary }}.zip.sha256" -Value "$hash  ${{ matrix.binary }}.zip"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.binary }}
+          path: dist/*
+
+  installer-scripts:
+    name: bundle installer scripts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Bundle install.sh / install.ps1 / install.bat
+        run: |
+          mkdir -p dist
+          cp scripts/install.sh dist/install.sh
+          cp scripts/install.ps1 dist/install.ps1
+          cp scripts/install.bat dist/install.bat
+          chmod +x dist/install.sh
+          cd dist && sha256sum install.sh install.ps1 install.bat > installers.sha256
+      - name: Upload installers artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portless-installers
+          path: dist/*
+
+  deb:
+    name: build debian package
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download Linux amd64 artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: portless-linux-amd64
+          path: artifact
+
+      - name: Get version
+        id: version
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Build .deb package
+        run: |
+          VERSION="${{ steps.version.outputs.tag }}"
+          VERSION="${VERSION#v}"
+
+          mkdir -p debian/DEBIAN
+          mkdir -p debian/usr/local/bin
+          mkdir -p debian/usr/share/doc/portless
+
+          cp artifact/portless-linux-amd64 debian/usr/local/bin/portless
+          chmod 755 debian/usr/local/bin/portless
+
+          cat > debian/DEBIAN/control << EOF
+          Package: portless
+          Version: ${VERSION}
+          Section: utils
+          Priority: optional
+          Architecture: amd64
+          Maintainer: Muhammad Fiaz <contact@muhammadfiaz.com>
+          Description: Portless - Stable, named .localhost URLs for local development
+           Portless is a Rust-native local development platform that gives every
+           dev server a stable https://<name>.<tld> URL. Inspired by
+           https://github.com/vercel-labs/portless.
+          Homepage: https://github.com/muhammad-fiaz/portless
+          EOF
+
+          cat > debian/usr/share/doc/portless/changelog.Debian << EOF
+          portless (${VERSION}-1) unstable; urgency=low
+
+            * Release ${VERSION}
+
+           -- Muhammad Fiaz <contact@muhammadfiaz.com>  $(date -R)
+          EOF
+
+          cd debian && tar -czf ../portless_${VERSION}_amd64.deb.gz DEBIAN usr
+
+      - name: Upload deb artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: portless-deb
+          path: "*.deb.gz"
+
+  release:
+    name: release
+    needs: [build, deb, installer-scripts]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Get version tag
+        id: version
+        run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Create release notes
+        run: |
+          VERSION="${{ steps.version.outputs.tag }}"
+          cat << 'EOF' > release_notes.md
+          ## What's New
+
+          For a complete list of changes, see the [full commit history](https://github.com/muhammad-fiaz/portless/commits/${VERSION}).
+
+          ## Installation
+
+          Download the appropriate binary for your platform from the assets below, or use the
+          one-line installer for your platform.
+
+          ```bash
+          # macOS / Linux (bash, zsh, fish, etc.)
+          curl -fsSL https://raw.githubusercontent.com/muhammad-fiaz/portless/main/scripts/install.sh | sh
+
+          # Windows PowerShell
+          irm https://raw.githubusercontent.com/muhammad-fiaz/portless/main/scripts/install.ps1 | iex
+
+          # Windows cmd
+          curl -fsSL -o install.bat https://raw.githubusercontent.com/muhammad-fiaz/portless/main/scripts/install.bat && install.bat
+          ```
+
+          | Platform | File | Description |
+          |----------|------|-------------|
+          | Linux (x86_64) | `portless-linux-amd64.tar.gz` | 64-bit Linux |
+          | Linux (ARM64) | `portless-linux-arm64.tar.gz` | 64-bit ARM Linux (Raspberry Pi 4+, AWS Graviton) |
+          | macOS (Intel) | `portless-macos-amd64.tar.gz` | Intel Mac |
+          | macOS (Apple Silicon) | `portless-macos-arm64.tar.gz` | M1/M2/M3/M4 Mac |
+          | Windows (x86_64) | `portless-windows-amd64.zip` | 64-bit Windows |
+          | Windows (ARM64) | `portless-windows-arm64.zip` | 64-bit Windows on ARM (Surface Pro X, etc.) |
+          | Debian (.deb) | `portless_*.deb.gz` | Debian/Ubuntu package |
+
+          ### Quick Start
+
+          ```bash
+          # Linux/macOS
+          tar -xzf portless-linux-amd64.tar.gz
+          chmod +x portless-linux-amd64
+          sudo mv portless-linux-amd64 /usr/local/bin/portless
+
+          # Start using it
+          portless trust  # one-time: install the local CA
+          portless run npm run dev
+          ```
+
+          ```powershell
+          # Windows (PowerShell)
+          Expand-Archive -Path portless-windows-amd64.zip -DestinationPath .
+          Move-Item portless-windows-amd64.exe C:\Windows\System32\portless.exe
+
+          # Start using it
+          portless trust
+          portless run npm run dev
+          ```
+
+          ```bash
+          # Debian/Ubuntu
+          tar -xzf portless_*.deb.gz
+          sudo dpkg -i portless_*.deb
+
+          portless trust
+          portless run npm run dev
+          ```
+
+          ### Verify Checksum
+
+          ```bash
+          # Linux/macOS
+          sha256sum -c portless-linux-amd64.tar.gz.sha256
+
+          # Windows (PowerShell)
+          $hash = (Get-FileHash -Algorithm SHA256 portless-windows-amd64.zip).Hash.ToLower()
+          $expected = (Get-Content portless-windows-amd64.zip.sha256).Split(" ")[0]
+          if ($hash -eq $expected) { Write-Host "Checksum OK" } else { Write-Host "Checksum mismatch!" }
+          ```
+
+          ## Documentation
+
+          - [README](https://github.com/muhammad-fiaz/portless#readme)
+          - [API Documentation](https://docs.rs/portless)
+          - [Website](https://muhammad-fiaz.github.io/portless)
+          - [Configuration Guide](https://github.com/muhammad-fiaz/portless/blob/main/docs/user-guide.md)
+
+          ## Contributing
+
+          Contributions are welcome! Please see [CONTRIBUTING.md](https://github.com/muhammad-fiaz/portless/blob/main/CONTRIBUTING.md) for details.
+
+          ## License
+
+          Licensed under the [Apache License, Version 2.0](https://github.com/muhammad-fiaz/portless/blob/main/LICENSE).
+
+          ## Acknowledgements
+
+          Inspired by [vercel-labs/portless](https://github.com/vercel-labs/portless).
+          EOF
+          sed -i "s/\${VERSION}/${VERSION}/g" release_notes.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          files: |
+            artifacts/**/*.tar.gz
+            artifacts/**/*.tar.gz.sha256
+            artifacts/**/*.zip
+            artifacts/**/*.zip.sha256
+            artifacts/**/*.deb.gz
+            artifacts/**/install.sh
+            artifacts/**/install.ps1
+            artifacts/**/install.bat
+            artifacts/**/installers.sha256
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

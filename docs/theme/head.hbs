@@ -1,0 +1,209 @@
+<!--
+Portless docs site — head injection.
+
+This file is included by mdbook via the `output.html.head` setting.
+It adds:
+
+- SEO meta tags (description, keywords, canonical, robots)
+- Open Graph tags (for Facebook, LinkedIn, Slack, etc.)
+- Twitter Card tags
+- JSON-LD schema.org structured data
+- Google Tag Manager (noscript iframe + script loader)
+- Google Analytics 4 (gtag.js)
+- Google AdSense (auto-ads)
+- Theme color, manifest hints
+-->
+
+<!-- SEO meta -->
+<meta name="description" content="Portless is a Rust-native local development platform that gives every dev server a stable https://<name>.<tld> URL. Inspired by vercel-labs/portless.">
+<meta name="keywords" content="portless, localhost, https, proxy, tls, development, rust, vercel-labs, muhammad-fiaz">
+<meta name="author" content="Muhammad Fiaz">
+<meta name="robots" content="index, follow">
+<meta name="googlebot" content="index, follow">
+<link rel="canonical" href="https://muhammad-fiaz.github.io/portless/">
+<meta name="theme-color" content="#ce422b">
+<meta name="color-scheme" content="light dark">
+<meta name="application-name" content="Portless">
+<meta name="apple-mobile-web-app-title" content="Portless">
+<meta name="generator" content="mdbook + cargo doc">
+
+<!-- Open Graph / Facebook -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Portless">
+<meta property="og:title" content="Portless — Rust-native local development platform">
+<meta property="og:description" content="Replace localhost:3000 with stable, named https://<name>.<tld> URLs. Rust-native, cross-platform, single binary.">
+<meta property="og:url" content="https://muhammad-fiaz.github.io/portless/">
+<meta property="og:image" content="https://muhammad-fiaz.github.io/portless/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Portless logo and tagline: stable .localhost URLs for local development.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="en_GB">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@muhammadfiaz">
+<meta name="twitter:creator" content="@muhammadfiaz">
+<meta name="twitter:title" content="Portless — Rust-native local development platform">
+<meta name="twitter:description" content="Replace localhost:3000 with stable, named https://<name>.<tld> URLs. Rust-native, cross-platform, single binary.">
+<meta name="twitter:image" content="https://muhammad-fiaz.github.io/portless/og-image.png">
+<meta name="twitter:image:alt" content="Portless logo and tagline.">
+
+<!-- JSON-LD: schema.org structured data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Portless",
+  "alternateName": "Portless by muhammad-fiaz",
+  "description": "Rust-native local development platform that replaces port numbers with stable HTTPS hostnames.",
+  "url": "https://muhammad-fiaz.github.io/portless/",
+  "applicationCategory": "DeveloperApplication",
+  "applicationSubCategory": "Local Development Proxy",
+  "operatingSystem": "Linux, macOS, Windows",
+  "softwareVersion": "0.0.0",
+  "softwareRequirements": "Rust 1.85+",
+  "downloadUrl": "https://github.com/muhammad-fiaz/portless/releases",
+  "softwareHelp": "https://muhammad-fiaz.github.io/portless/",
+  "license": "https://opensource.org/licenses/Apache-2.0",
+  "isAccessibleForFree": true,
+  "keywords": "localhost, proxy, https, tls, development, rust",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "Muhammad Fiaz",
+    "email": "contact@muhammadfiaz.com",
+    "url": "https://muhammad-fiaz.github.io/portless/"
+  },
+  "creator": {
+    "@type": "Person",
+    "name": "Muhammad Fiaz",
+    "email": "contact@muhammadfiaz.com"
+  },
+  "maintainer": {
+    "@type": "Person",
+    "name": "Muhammad Fiaz",
+    "email": "contact@muhammadfiaz.com"
+  },
+  "publisher": {
+    "@type": "Person",
+    "name": "Muhammad Fiaz",
+    "email": "contact@muhammadfiaz.com"
+  },
+  "sourceOrganization": {
+    "@type": "Organization",
+    "name": "Portless Project",
+    "url": "https://github.com/muhammad-fiaz/portless"
+  },
+  "codeRepository": "https://github.com/muhammad-fiaz/portless",
+  "programmingLanguage": "Rust",
+  "runtimePlatform": "Linux, macOS, Windows",
+  "sameAs": [
+    "https://github.com/muhammad-fiaz/portless",
+    "https://crates.io/crates/portless",
+    "https://docs.rs/portless",
+    "https://github.com/vercel-labs/portless"
+  ]
+}
+</script>
+
+<!-- JSON-LD: WebSite (for sitelinks search box) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "Portless",
+  "url": "https://muhammad-fiaz.github.io/portless/",
+  "description": "Rust-native local development platform documentation.",
+  "inLanguage": "en",
+  "publisher": {
+    "@type": "Person",
+    "name": "Muhammad Fiaz"
+  }
+}
+</script>
+
+<!-- JSON-LD: BreadcrumbList -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Home",
+      "item": "https://muhammad-fiaz.github.io/portless/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Documentation",
+      "item": "https://muhammad-fiaz.github.io/portless/"
+    }
+  ]
+}
+</script>
+
+<!-- JSON-LD: FAQPage (rich result eligibility) -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "What is Portless?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Portless is a Rust-native local development platform that gives every dev server a stable https://<name>.<tld> URL, replacing port numbers like localhost:3000."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Portless a fork of vercel-labs/portless?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Portless is an independent Rust-native reimplementation inspired by vercel-labs/portless. The original concept and design credit goes to the Vercel Labs team."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I install Portless?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Run `cargo install portless` (requires Rust 1.85+), or download a pre-built binary from the GitHub Releases page."
+      }
+    }
+  ]
+}
+</script>
+
+<!-- Google Tag Manager (head) -->
+<script>
+(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-P4M9T8ZR');
+</script>
+<!-- End Google Tag Manager -->
+
+<!-- Google Analytics 4 (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-6BVYCRK57P"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-6BVYCRK57P');
+</script>
+<!-- End Google Analytics 4 -->
+
+<!-- Google AdSense (auto-ads) -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2040560600290490"
+     crossorigin="anonymous"></script>
+<!-- End Google AdSense -->

@@ -1,0 +1,52 @@
+/* Portless docs — custom theme overrides */
+:root {
+  --rust-primary: #ce422b;
+  --rust-primary-dark: #a8361f;
+  --rust-accent: #2c8a4a;
+}
+
+.chapter li.chapter-item strong {
+  color: var(--rust-primary);
+}
+
+blockquote {
+  border-left: 4px solid var(--rust-primary);
+  background: rgba(206, 66, 43, 0.05);
+  padding: 0.75rem 1rem;
+  margin: 1rem 0;
+  border-radius: 0 4px 4px 0;
+}
+
+table {
+  margin: 1rem 0;
+}
+
+table th {
+  background: var(--rust-primary);
+  color: #fff;
+}
+
+code {
+  font-family: "Fira Code", "Cascadia Code", "JetBrains Mono", monospace;
+  font-size: 0.9em;
+}
+
+:not(pre) > code {
+  background: rgba(206, 66, 43, 0.1);
+  color: var(--rust-primary-dark);
+  padding: 0.1em 0.3em;
+  border-radius: 3px;
+}
+
+a {
+  color: var(--rust-primary);
+}
+
+a:hover {
+  color: var(--rust-primary-dark);
+}
+
+.menu-title {
+  color: var(--rust-primary);
+  font-weight: 700;
+}
