@@ -8,7 +8,7 @@ src = "src"
 [output.html]
 default-theme = "rust"
 git-repository-url = "https://github.com/muhammad-fiaz/portless"
-git-repository-icon = "brands fa-github"
+git-repository-icon = "fab-github"
 edit-url-template = "https://github.com/muhammad-fiaz/portless/edit/main/docs/{path}"
 site-url = "https://muhammad-fiaz.github.io/portless/"
 additional-css = ["theme/custom.css"]
