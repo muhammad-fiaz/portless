@@ -16,7 +16,7 @@ dev hostnames resolve on your machine.
 
 - **Recommended**: `.test` (IANA-reserved, no collision risk).
 - **Avoid**: `.local` (conflicts with mDNS/Bonjour).
-- **Avoid**: `.dev` (Google-owned, forces HTTPS via HSTS — that one is
+- **Avoid**: `.dev` (Google-owned, forces HTTPS via HSTS - that one is
   actually a feature, but collisions with real Google services are possible).
 
 ## TLD-specific warnings

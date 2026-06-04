@@ -3,8 +3,8 @@
 Portless is an independent Rust-native reimplementation of the original
 [**vercel-labs/portless**](https://github.com/vercel-labs/portless) idea.
 
-The original concept — replace `localhost:3000` with stable, named
-`.localhost` URLs — was pioneered by the
+The original concept - replace `localhost:3000` with stable, named
+`.localhost` URLs - was pioneered by the
 [Vercel Labs](https://github.com/vercel-labs) team. Their TypeScript
 implementation is the design reference for this project. All credit for the
 idea, the developer experience, and the design philosophy goes to them.
@@ -36,6 +36,6 @@ If you are looking for the original TypeScript implementation, please visit
 
 ## Other credits
 
-- The Rust community — for an unparalleled ecosystem of high-quality crates.
-- All contributors — see [CONTRIBUTING.md](https://github.com/muhammad-fiaz/portless/blob/main/CONTRIBUTING.md).
+- The Rust community - for an unparalleled ecosystem of high-quality crates.
+- All contributors - see [CONTRIBUTING.md](https://github.com/muhammad-fiaz/portless/blob/main/CONTRIBUTING.md).
 - The maintainer, [Muhammad Fiaz](https://muhammad-fiaz.github.io/portless).

@@ -40,7 +40,7 @@ portless run npm run dev
 
 - ⭐ Star the repo to show your support
 - 🐛 Report bugs and request features via the issue templates
-- 🔧 Open a PR — see [CONTRIBUTING.md](../../CONTRIBUTING.md)
+- 🔧 Open a PR - see [CONTRIBUTING.md](../../CONTRIBUTING.md)
 - 💬 Help others in [Discussions](https://github.com/muhammad-fiaz/portless/discussions)
 - 💖 [Sponsor Muhammad Fiaz](https://pay.muhammadfiaz.com) to support development
 
@@ -50,5 +50,5 @@ Be kind. Be respectful. Disagree on technical merit. Assume good faith.
 
 ---
 
-_Template courtesy of the open-source community — feel free to close this issue
+_Template courtesy of the open-source community - feel free to close this issue
 once you've said hi!_

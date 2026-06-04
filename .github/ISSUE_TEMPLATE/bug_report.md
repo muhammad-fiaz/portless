@@ -83,7 +83,7 @@ paste here
 
 ## Additional Context
 
-Add any other context about the problem here — links, screenshots, related issues.
+Add any other context about the problem here - links, screenshots, related issues.
 
 ## Possible Solution
 

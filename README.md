@@ -13,6 +13,7 @@
 
 </div>
 
+> [!TIP]
 > **Replacing ports with stable, named `.localhost` URLs for local development.**
 > For humans and agents.
 
@@ -29,13 +30,13 @@
 
 Local development with port numbers is fragile:
 
-- **Port conflicts** — two projects default to the same port and you get `EADDRINUSE`.
-- **Memorizing ports** — was the API on `3001` or `8080`?
-- **Wrong app on refresh** — stop one server, start another on the same port, and your open tab is now a different app.
-- **Cookie / storage collisions** — cookies set on `localhost` bleed across apps.
-- **Hardcoded ports in config** — CORS allowlists, OAuth redirect URIs, `.env` files all break when ports shift.
-- **Agent / AI guess-work** — agents guess or hardcode the wrong port, especially in monorepos.
-- **Browser history mess** — `localhost:3000` history is a jumble of unrelated projects.
+- **Port conflicts** - two projects default to the same port and you get `EADDRINUSE`.
+- **Memorizing ports** - was the API on `3001` or `8080`?
+- **Wrong app on refresh** - stop one server, start another on the same port, and your open tab is now a different app.
+- **Cookie / storage collisions** - cookies set on `localhost` bleed across apps.
+- **Hardcoded ports in config** - CORS allowlists, OAuth redirect URIs, `.env` files all break when ports shift.
+- **Agent / AI guess-work** - agents guess or hardcode the wrong port, especially in monorepos.
+- **Browser history mess** - `localhost:3000` history is a jumble of unrelated projects.
 
 Portless gives every dev server a stable, named `https://<name>.<tld>` URL.
 
@@ -83,34 +84,34 @@ Portless introduced stable localhost development URLs.
 
 This project is an **independent Rust-native implementation** focused on:
 
-- **Reliability** — file-backed route registry, panic isolation, automatic recovery.
-- **Concurrency** — Tokio + DashMap + ArcSwap, no global locks in hot paths.
-- **Performance** — `release` profile uses LTO, opt-level 3, codegen-units 1.
-- **Security** — `#![forbid(unsafe_code)]`, `0600` perms on private keys, SNI cert isolation.
-- **Modern networking** — rustls, HTTP/1.1, HTTP/2 with ALPN, optional HTTP/3 (QUIC).
-- **Cross-platform** — Linux, macOS, Windows, with native OS service integration.
+- **Reliability** - file-backed route registry, panic isolation, automatic recovery.
+- **Concurrency** - Tokio + DashMap + ArcSwap, no global locks in hot paths.
+- **Performance** - `release` profile uses LTO, opt-level 3, codegen-units 1.
+- **Security** - `#![forbid(unsafe_code)]`, `0600` perms on private keys, SNI cert isolation.
+- **Modern networking** - rustls, HTTP/1.1, HTTP/2 with ALPN, optional HTTP/3 (QUIC).
+- **Cross-platform** - Linux, macOS, Windows, with native OS service integration.
 
 ## Features
 
-- **Stable local URLs** — `https://myapp.localhost` instead of `http://localhost:3000`.
-- **Automatic HTTPS** — local CA, per-hostname certs, automatic trust.
-- **HTTP/2 by default** — multiplexes requests over a single connection.
+- **Stable local URLs** - `https://myapp.localhost` instead of `http://localhost:3000`.
+- **Automatic HTTPS** - local CA, per-hostname certs, automatic trust.
+- **HTTP/2 by default** - multiplexes requests over a single connection.
 - **HTTP/1.1, HTTP/2, HTTP/3, WebSockets, SSE, streaming**.
-- **Cross-platform** — Linux, macOS, Windows.
-- **Language-agnostic** — runs any executable (`cargo run`, `uv run`, `go run`, `npm run dev`, etc.).
-- **Framework-agnostic** — auto-detects Next.js, Vite, Astro, Nuxt, SvelteKit, Angular, etc.
-- **Zero-config mode** — `portless` in any project dir.
-- **Subdomains** — `https://api.myapp.localhost`.
-- **Wildcard routing** — opt-in `tenant1.myapp.localhost` → `myapp.localhost`.
-- **Git worktree support** — `fix-ui.myapp.localhost` for linked worktrees.
-- **Monorepo support** — pnpm, npm, yarn, bun workspaces.
-- **Custom TLD** — `--tld test` (recommended), `--tld internal`, etc.
-- **LAN mode** — mDNS `.local` for real-device testing.
-- **OS service** — `portless service install` for startup-on-boot.
-- **Dashboard** — minimal admin UI on a separate port.
-- **Tailscale sharing** — `--tailscale` for tailnet URLs, `--funnel` for public.
-- **Auto /etc/hosts sync** — Safari compatibility, opt-out with `PORTLESS_SYNC_HOSTS=0`.
-- **Prometheus metrics** — `portless list` and `/api/metrics`.
+- **Cross-platform** - Linux, macOS, Windows.
+- **Language-agnostic** - runs any executable (`cargo run`, `uv run`, `go run`, `npm run dev`, etc.).
+- **Framework-agnostic** - auto-detects Next.js, Vite, Astro, Nuxt, SvelteKit, Angular, etc.
+- **Zero-config mode** - `portless` in any project dir.
+- **Subdomains** - `https://api.myapp.localhost`.
+- **Wildcard routing** - opt-in `tenant1.myapp.localhost` → `myapp.localhost`.
+- **Git worktree support** - `fix-ui.myapp.localhost` for linked worktrees.
+- **Monorepo support** - pnpm, npm, yarn, bun workspaces.
+- **Custom TLD** - `--tld test` (recommended), `--tld internal`, etc.
+- **LAN mode** - mDNS `.local` for real-device testing.
+- **OS service** - `portless service install` for startup-on-boot.
+- **Dashboard** - minimal admin UI on a separate port.
+- **Tailscale sharing** - `--tailscale` for tailnet URLs, `--funnel` for public.
+- **Auto /etc/hosts sync** - Safari compatibility, opt-out with `PORTLESS_SYNC_HOSTS=0`.
+- **Prometheus metrics** - `portless list` and `/api/metrics`.
 
 ## Commands
 
@@ -155,8 +156,8 @@ portless help                             # Show help
 | `PORTLESS_FUNNEL`         | `1` to share via Tailscale Funnel                    | off                |
 | `PORTLESS_STATE_DIR`      | Override state directory                             | `~/.portless`      |
 | `PORTLESS_APP_PORT`       | Use a fixed port for the child process               | random 4000–4999   |
-| `PORTLESS_URL`            | Injected into child: the public URL                  | —                  |
-| `PORTLESS_TAILSCALE_URL`  | Injected into child: the Tailscale URL               | —                  |
+| `PORTLESS_URL`            | Injected into child: the public URL                  | -                  |
+| `PORTLESS_TAILSCALE_URL`  | Injected into child: the Tailscale URL               | -                  |
 
 ## Configuration
 
@@ -236,6 +237,6 @@ This project is licensed under the Apache-2.0 License. See the [LICENSE](LICENSE
 
 ## Acknowledgements
 
-- **[Portless by Vercel Labs](https://github.com/vercel-labs/portless)** — the original concept and design that inspired this project. This Rust reimplementation is independent and not a fork.
-- The Rust community — for an unparalleled ecosystem of high-quality crates.
-- All contributors — see [CONTRIBUTING.md](CONTRIBUTING.md).
+- **[Portless by Vercel Labs](https://github.com/vercel-labs/portless)** - the original concept and design that inspired this project. This Rust reimplementation is independent and not a fork.
+- The Rust community - for an unparalleled ecosystem of high-quality crates.
+- All contributors - see [CONTRIBUTING.md](CONTRIBUTING.md).

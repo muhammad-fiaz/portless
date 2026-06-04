@@ -100,7 +100,7 @@ the Apache-2.0 license. See `LICENSE` for the full text.
 
 ## Maintainer
 
-**Muhammad Fiaz** — <contact@muhammadfiaz.com>
+**Muhammad Fiaz** - <contact@muhammadfiaz.com>
 
 - Website: <https://muhammad-fiaz.github.io/portless>
 - Repository: <https://github.com/muhammad-fiaz/portless>
