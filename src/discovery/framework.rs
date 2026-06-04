@@ -463,8 +463,11 @@ mod tests {
     #[tokio::test]
     async fn detect_go() {
         let dir = TempDir::new().unwrap();
-        std::fs::write(dir.path().join("go.mod"), "module example.com/myapp\n\ngo 1.22\n")
-            .unwrap();
+        std::fs::write(
+            dir.path().join("go.mod"),
+            "module example.com/myapp\n\ngo 1.22\n",
+        )
+        .unwrap();
         let f = Framework::detect(dir.path()).await;
         assert_eq!(f, Some(Framework::Go));
     }
@@ -500,7 +503,11 @@ mod tests {
     #[tokio::test]
     async fn detect_ruby() {
         let dir = TempDir::new().unwrap();
-        std::fs::write(dir.path().join("Gemfile"), "source 'https://rubygems.org'\n").unwrap();
+        std::fs::write(
+            dir.path().join("Gemfile"),
+            "source 'https://rubygems.org'\n",
+        )
+        .unwrap();
         let f = Framework::detect(dir.path()).await;
         assert_eq!(f, Some(Framework::Ruby));
     }

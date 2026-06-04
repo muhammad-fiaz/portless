@@ -335,9 +335,14 @@ mod tests {
         // Use the shell directly to run a trivial command on both platforms.
         // On Windows we run `cmd /c exit 0`; on Unix we run `/bin/sh -c true`.
         #[cfg(unix)]
-        let status = run_direct("/bin/sh", &["-c".to_string(), "true".to_string()], None, &[])
-            .await
-            .unwrap();
+        let status = run_direct(
+            "/bin/sh",
+            &["-c".to_string(), "true".to_string()],
+            None,
+            &[],
+        )
+        .await
+        .unwrap();
         #[cfg(windows)]
         let status = {
             // On Windows run_direct goes through cmd.exe, so just pick any
@@ -373,4 +378,3 @@ mod tests {
         assert_eq!(shell_escape("it's"), "'it'\\''s'");
     }
 }
-

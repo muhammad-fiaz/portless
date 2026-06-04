@@ -2,7 +2,7 @@
 
 # Portless
 
-**Rust-native local development platform that replaces `localhost:3000`-style port numbers with stable HTTPS hostnames.**
+**`localhost:3000` → `https://myapp.localhost`.**
 
 [![Crates.io](https://img.shields.io/crates/v/portless.svg)](https://crates.io/crates/portless)
 [![Documentation](https://docs.rs/portless/badge.svg)](https://docs.rs/portless)
@@ -10,7 +10,6 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Build Status](https://github.com/muhammad-fiaz/portless/workflows/CI/badge.svg)](https://github.com/muhammad-fiaz/portless/actions)
 [![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org)
-[![Tests](https://img.shields.io/badge/tests-81%20passing-brightgreen.svg)](#testing)
 
 </div>
 
@@ -112,7 +111,6 @@ This project is an **independent Rust-native implementation** focused on:
 - **Tailscale sharing** — `--tailscale` for tailnet URLs, `--funnel` for public.
 - **Auto /etc/hosts sync** — Safari compatibility, opt-out with `PORTLESS_SYNC_HOSTS=0`.
 - **Prometheus metrics** — `portless list` and `/api/metrics`.
-- **80 unit + integration tests** covering routing, TLS, hosts, config, state, discovery, worktree, metrics.
 
 ## Commands
 
@@ -211,44 +209,6 @@ src/
 └── trust.rs         # OS-level CA trust
 ```
 
-### Why single-crate?
-
-- One `Cargo.toml`, one `cargo build`, one binary.
-- Cleaner module boundaries, no version-skew between internal crates.
-- Faster compile times for contributors.
-- Easier to audit (one source tree).
-
-## Safety
-
-- `#![forbid(unsafe_code)]` at the crate root.
-- No `unsafe` blocks anywhere in the source.
-- Private keys are persisted with `0600` permissions on Unix.
-
-## Performance
-
-- Tokio async runtime (`#[tokio::main]`).
-- `DashMap` for concurrent route lookups.
-- `ArcSwap` for lock-free reads of immutable state.
-- `parking_lot::RwLock` for low-contention writes.
-- `parking_lot::Mutex` for short critical sections.
-- Atomic counters and gauges (no `RwLock` in the metrics hot path).
-- `release` profile uses LTO + `opt-level = 3` + `codegen-units = 1`.
-
-## Security
-
-- Per-hostname certificates (no wildcard certs that violate RFC 2606 for `.localhost`).
-- Loop detection via `X-Portless-Hops` header (HTTP 508 after 5 hops).
-- TLS 1.3 by default.
-- SNI-based cert resolution.
-- Private key material never logged.
-
-## Reliability
-
-- Graceful shutdown on SIGINT / SIGTERM.
-- Panic isolation in connection handlers.
-- Route registry persisted atomically (write-to-temp + rename).
-- Prune command for orphan cleanup after CLI crashes.
-
 ## Cross-platform
 
 | Platform | Service       | Hosts file path                                       |
@@ -262,8 +222,6 @@ src/
 ```sh
 cargo test
 ```
-
-80+ tests cover routing, TLS, hosts, config, state, discovery, worktree, metrics, and platform helpers.
 
 ## Linting
 

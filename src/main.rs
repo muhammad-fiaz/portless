@@ -13,8 +13,6 @@ async fn main() -> portless::common::Result<()> {
     // Install a friendly panic hook that prints a pre-filled GitHub issue URL.
     portless::common::report::install_panic_hook();
 
-
-
     let cli = portless::cli::Cli::parse();
     match portless::cli::run(cli).await {
         Ok(()) => Ok(()),

@@ -178,8 +178,6 @@ pub enum ServiceAction {
     Status,
 }
 
-
-
 /// Dispatch a parsed `Cli`.
 pub async fn run(cli: Cli) -> Result<()> {
     init_tracing(cli.global.verbose);
@@ -330,7 +328,12 @@ async fn cmd_zero_arg(paths: Paths) -> Result<()> {
         // For JS projects, verify the script actually exists before spawning.
         if has_js_script && !project.has_script(&script) && !has_portless_config {
             eprintln!("portless: no '{script}' script found in package.json.");
-            let available = project.scripts.keys().cloned().collect::<Vec<_>>().join(", ");
+            let available = project
+                .scripts
+                .keys()
+                .cloned()
+                .collect::<Vec<_>>()
+                .join(", ");
             if !available.is_empty() {
                 eprintln!("  Available scripts: {available}");
             }
@@ -341,7 +344,6 @@ async fn cmd_zero_arg(paths: Paths) -> Result<()> {
         cmd_run(None, script, false, false, false, vec![], paths).await
     }
 }
-
 
 async fn run_monorepo(
     _cfg: &PortlessConfig,
@@ -392,7 +394,9 @@ async fn ensure_proxy_running(paths: &Paths) -> Result<()> {
     }
 
     let env = Env::load();
-    let store = crate::state::proxy_state::Store::open(paths.clone()).await.ok();
+    let store = crate::state::proxy_state::Store::open(paths.clone())
+        .await
+        .ok();
     let state = if let Some(ref s) = store {
         s.snapshot().await
     } else {
@@ -443,7 +447,10 @@ async fn ensure_proxy_running(paths: &Paths) -> Result<()> {
     cmd.stderr(std::process::Stdio::null());
     cmd.stdin(std::process::Stdio::null());
 
-    println!("portless: proxy not running. Auto-starting proxy on port {}...", port);
+    println!(
+        "portless: proxy not running. Auto-starting proxy on port {}...",
+        port
+    );
     cmd.spawn()?;
 
     for _ in 0..10 {
@@ -474,7 +481,11 @@ fn build_child_env(
         ("PORTLESS_TLD".to_string(), tld.to_string()),
         (
             "PORTLESS_HTTPS".to_string(),
-            if https { "1".to_string() } else { "0".to_string() },
+            if https {
+                "1".to_string()
+            } else {
+                "0".to_string()
+            },
         ),
     ];
     if let Some(t) = tailscale_url {
@@ -588,7 +599,11 @@ fn build_command_for(cmd: &[String], port: u16, lan_mode: bool) -> Vec<String> {
         if !out.iter().any(|a| a == "--host" || a == "-H") {
             let is_expo_lan = fw == crate::discovery::framework::Framework::Expo && lan_mode;
             if !is_expo_lan {
-                let host_val = if fw == crate::discovery::framework::Framework::Expo { "localhost" } else { "127.0.0.1" };
+                let host_val = if fw == crate::discovery::framework::Framework::Expo {
+                    "localhost"
+                } else {
+                    "127.0.0.1"
+                };
                 out.push("--host".to_string());
                 out.push(host_val.to_string());
             }
@@ -665,7 +680,6 @@ async fn register_spawn_wait(
     Ok(code)
 }
 
-
 async fn cmd_run(
     name: Option<String>,
     script: String,
@@ -723,8 +737,14 @@ async fn cmd_run(
     } else {
         None
     };
-    let env = build_child_env(&full_host, app_port, tld.as_str(), tailscale_url.as_deref(), https);
-    
+    let env = build_child_env(
+        &full_host,
+        app_port,
+        tld.as_str(),
+        tailscale_url.as_deref(),
+        https,
+    );
+
     let mut command_line = vec![program.clone()];
     command_line.extend(args.iter().cloned());
     let final_command_line = build_command_for(&command_line, app_port, lan_mode);
@@ -799,14 +819,29 @@ async fn cmd_named(
     } else {
         None
     };
-    let env = build_child_env(&full_host, port, tld.as_str(), tailscale_url.as_deref(), https);
-    
+    let env = build_child_env(
+        &full_host,
+        port,
+        tld.as_str(),
+        tailscale_url.as_deref(),
+        https,
+    );
+
     let final_command_line = build_command_for(&cmd, port, lan_mode);
     let final_program = final_command_line[0].clone();
     let final_args = final_command_line[1..].to_vec();
 
-    let code =
-        register_spawn_wait(full_host, port, final_program, final_args, cwd, env, force, paths).await?;
+    let code = register_spawn_wait(
+        full_host,
+        port,
+        final_program,
+        final_args,
+        cwd,
+        env,
+        force,
+        paths,
+    )
+    .await?;
     if code != 0 {
         std::process::exit(code);
     }
@@ -815,17 +850,25 @@ async fn cmd_named(
 
 async fn cmd_get(name: String, no_worktree: bool, paths: Paths) -> Result<()> {
     let cwd = std::env::current_dir()?;
-    
-    let store = crate::state::proxy_state::Store::open(paths.clone()).await.ok();
+
+    let store = crate::state::proxy_state::Store::open(paths.clone())
+        .await
+        .ok();
     let (tld, https) = if let Some(store) = store {
         let snapshot = store.snapshot().await;
         if !snapshot.tld.as_str().is_empty() {
             (snapshot.tld.clone(), snapshot.https)
         } else {
-            (Tld::new(Env::load().tld().unwrap_or("localhost"))?, !Env::load().https_disabled())
+            (
+                Tld::new(Env::load().tld().unwrap_or("localhost"))?,
+                !Env::load().https_disabled(),
+            )
         }
     } else {
-        (Tld::new(Env::load().tld().unwrap_or("localhost"))?, !Env::load().https_disabled())
+        (
+            Tld::new(Env::load().tld().unwrap_or("localhost"))?,
+            !Env::load().https_disabled(),
+        )
     };
 
     let worktree_prefix = if no_worktree {
@@ -1093,8 +1136,6 @@ async fn cmd_service_status() -> Result<()> {
     Ok(())
 }
 
-
-
 /// Compose a hostname from an app name, optional worktree prefix, and TLD.
 pub fn compose_hostname(app: String, worktree_prefix: Option<String>, tld: &Tld) -> String {
     let mut parts: Vec<String> = vec![];
@@ -1135,7 +1176,15 @@ mod tests {
         let result = build_command_for(&cmd, 4567, false);
         assert_eq!(
             result,
-            to_strings(&["vite", "dev", "--port", "4567", "--strictPort", "--host", "127.0.0.1"])
+            to_strings(&[
+                "vite",
+                "dev",
+                "--port",
+                "4567",
+                "--strictPort",
+                "--host",
+                "127.0.0.1"
+            ])
         );
     }
 
@@ -1145,7 +1194,16 @@ mod tests {
         let result = build_command_for(&cmd, 4567, false);
         assert_eq!(
             result,
-            to_strings(&["npx", "vite", "dev", "--port", "4567", "--strictPort", "--host", "127.0.0.1"])
+            to_strings(&[
+                "npx",
+                "vite",
+                "dev",
+                "--port",
+                "4567",
+                "--strictPort",
+                "--host",
+                "127.0.0.1"
+            ])
         );
     }
 
@@ -1155,7 +1213,17 @@ mod tests {
         let result = build_command_for(&cmd, 4567, false);
         assert_eq!(
             result,
-            to_strings(&["bunx", "--bun", "vite", "dev", "--port", "4567", "--strictPort", "--host", "127.0.0.1"])
+            to_strings(&[
+                "bunx",
+                "--bun",
+                "vite",
+                "dev",
+                "--port",
+                "4567",
+                "--strictPort",
+                "--host",
+                "127.0.0.1"
+            ])
         );
     }
 
@@ -1165,7 +1233,17 @@ mod tests {
         let result = build_command_for(&cmd, 4567, false);
         assert_eq!(
             result,
-            to_strings(&["pnpm", "exec", "vite", "dev", "--port", "4567", "--strictPort", "--host", "127.0.0.1"])
+            to_strings(&[
+                "pnpm",
+                "exec",
+                "vite",
+                "dev",
+                "--port",
+                "4567",
+                "--strictPort",
+                "--host",
+                "127.0.0.1"
+            ])
         );
     }
 
@@ -1175,7 +1253,16 @@ mod tests {
         let result = build_command_for(&cmd, 4567, false);
         assert_eq!(
             result,
-            to_strings(&["yarn", "vite", "dev", "--port", "4567", "--strictPort", "--host", "127.0.0.1"])
+            to_strings(&[
+                "yarn",
+                "vite",
+                "dev",
+                "--port",
+                "4567",
+                "--strictPort",
+                "--host",
+                "127.0.0.1"
+            ])
         );
     }
 
@@ -1185,7 +1272,18 @@ mod tests {
         let result = build_command_for(&cmd, 4567, false);
         assert_eq!(
             result,
-            to_strings(&["yarn", "dlx", "--yes", "vite", "dev", "--port", "4567", "--strictPort", "--host", "127.0.0.1"])
+            to_strings(&[
+                "yarn",
+                "dlx",
+                "--yes",
+                "vite",
+                "dev",
+                "--port",
+                "4567",
+                "--strictPort",
+                "--host",
+                "127.0.0.1"
+            ])
         );
     }
 
@@ -1193,10 +1291,7 @@ mod tests {
     fn test_expo_lan_mode() {
         let cmd = to_strings(&["expo", "start"]);
         let result = build_command_for(&cmd, 4567, true);
-        assert_eq!(
-            result,
-            to_strings(&["expo", "start", "--port", "4567"])
-        );
+        assert_eq!(result, to_strings(&["expo", "start", "--port", "4567"]));
     }
 
     #[test]
