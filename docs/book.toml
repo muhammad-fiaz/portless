@@ -5,19 +5,13 @@ authors = ["Muhammad Fiaz <contact@muhammadfiaz.com>"]
 language = "en"
 multilingual = false
 src = "src"
-site_url = "https://muhammad-fiaz.github.io/portless/"
-git_repository_url = "https://github.com/muhammad-fiaz/portless"
-edit_url_template = "https://github.com/muhammad-fiaz/portless/edit/main/docs/{path}"
-site_description = """
-Portless is a Rust-native local development platform that gives every dev server
-a stable https://<name>.<tld> URL. Inspired by vercel-labs/portless.
-"""
 
 [output.html]
 default-theme = "rust"
 git-repository-url = "https://github.com/muhammad-fiaz/portless"
 git-repository-icon = "fa-github"
 edit-url-template = "https://github.com/muhammad-fiaz/portless/edit/main/docs/{path}"
+site-url = "https://muhammad-fiaz.github.io/portless/"
 additional-css = ["theme/custom.css"]
 additional-js = ["theme/analytics.js", "theme/adsense.js"]
 

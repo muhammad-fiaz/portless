@@ -42,15 +42,19 @@ Portless gives every dev server a stable, named `https://<name>.<tld>` URL.
 
 ## Installation
 
-### From source (recommended for 0.0.0)
+### From crates.io (recommended)
 
-Install directly from GitHub:
+```sh
+cargo install portless
+```
+
+### From GitHub (latest commit)
 
 ```sh
 cargo install --git https://github.com/muhammad-fiaz/portless
 ```
 
-Or build from a local clone:
+### From a local clone
 
 ```sh
 git clone https://github.com/muhammad-fiaz/portless
@@ -58,9 +62,19 @@ cd portless
 cargo install --path .
 ```
 
-### Pre-built binaries (planned for 0.1.0)
+### Pre-built binaries
 
-See [Releases](https://github.com/muhammad-fiaz/portless/releases).
+Download a release binary for your platform from
+[Releases](https://github.com/muhammad-fiaz/portless/releases), or use the
+one-line installer:
+
+```sh
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/muhammad-fiaz/portless/main/scripts/install.sh | sh
+
+# Windows (PowerShell)
+irm https://raw.githubusercontent.com/muhammad-fiaz/portless/main/scripts/install.ps1 | iex
+```
 
 ## Quick start
 

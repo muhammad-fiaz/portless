@@ -1,22 +1,23 @@
 [package]
 name = "portless"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
-description = "Rust-native local development platform that replaces localhost port numbers with stable HTTPS hostnames"
+rust-version = "1.85"
+description = "Stable https://<name>.<tld> URLs for local dev servers, no port numbers needed"
 license = "Apache-2.0"
 authors = ["Muhammad Fiaz <contact@muhammadfiaz.com>"]
 repository = "https://github.com/muhammad-fiaz/portless"
 homepage = "https://muhammad-fiaz.github.io/portless"
 documentation = "https://docs.rs/portless"
 readme = "README.md"
-keywords = ["localhost", "proxy", "https", "tls", "development"]
+keywords = ["localhost", "proxy", "https", "tls", "reverse-proxy"]
 categories = [
     "command-line-utilities",
-    "development-tools",
+    "development-tools::debugging",
     "network-programming",
-    "web-programming",
+    "web-programming::http-server",
 ]
-exclude = [".github/", "scripts/", "docs/"]
+exclude = [".github/", "scripts/", "docs/", "examples/starter/target/"]
 
 [lib]
 name = "portless"
