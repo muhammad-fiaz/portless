@@ -86,7 +86,7 @@ pub fn elevate_and_re_run() -> Result<()> {
                 "sudo elevation failed".into(),
             ));
         }
-        return Ok(());
+        Ok(())
     }
     #[cfg(windows)]
     {
