@@ -132,7 +132,7 @@ fn strip_pem(bytes: &[u8]) -> Vec<u8> {
 }
 
 #[cfg(unix)]
-fn set_key_permissions(path: &Path) -> Result<()> {
+fn set_key_permissions(path: &std::path::Path) -> Result<()> {
     use std::os::unix::fs::PermissionsExt;
     let mut perms = std::fs::metadata(path)?.permissions();
     perms.set_mode(0o600);

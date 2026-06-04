@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-- Rust 1.85 or later (`rustup install stable`).
+- Latest stable Rust (`rustup default stable`).
 - On Linux: `libssl-dev`, `pkg-config`, `build-essential`.
 - On macOS: `brew install openssl pkg-config`.
 - On Windows: Visual Studio Build Tools 2022 with the "Desktop development

@@ -9,7 +9,7 @@ Be kind. Be respectful. Disagree on technical merit. Assume good faith.
 
 ## Development setup
 
-1. **Install Rust 1.85 or later.**
+1. **Install the latest stable Rust via [rustup](https://rustup.rs) (`rustup default stable`).**
 
    ```sh
    rustup install stable

@@ -59,13 +59,10 @@ impl rustls::server::ResolvesServerCert for SniResolver {
         // ideal, but in practice this just hits an in-memory cache. Fall
         // back to a blocking-runtime handle for misses.
         let pair = futures::executor::block_on(self.loader.get_or_generate(sni)).ok()?;
-        let cert_chain: Vec<rustls_pki_types::CertificateDer<'static>> =
-            rustls_pemfile::certs(&mut pair.cert_pem.as_bytes())
-                .filter_map(|c| c.ok())
-                .collect();
-        if cert_chain.is_empty() {
-            return None;
-        }
+        let cert = rustls_pki_types::CertificateDer::from_pem_slice(pair.cert_pem.as_bytes())
+            .map_err(|e| tracing::debug!("parse cert pem: {e}"))
+            .ok()?;
+        let cert_chain: Vec<rustls_pki_types::CertificateDer<'static>> = vec![cert];
         let key = rustls_pki_types::PrivateKeyDer::from_pem_slice(pair.key_pem.as_bytes()).ok()?;
         let key = rustls::crypto::aws_lc_rs::default_provider()
             .key_provider

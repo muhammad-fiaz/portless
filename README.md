@@ -9,7 +9,7 @@
 [![Website](https://img.shields.io/badge/website-muhammad--fiaz.github.io%2Fportless-blue)](https://muhammad-fiaz.github.io/portless)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Build Status](https://github.com/muhammad-fiaz/portless/workflows/CI/badge.svg)](https://github.com/muhammad-fiaz/portless/actions)
-[![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org)
+[![Rust](https://img.shields.io/badge/rust-stable-orange.svg)](https://www.rust-lang.org)
 
 </div>
 

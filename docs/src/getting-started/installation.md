@@ -2,7 +2,7 @@
 
 ## Requirements
 
-- **Rust 1.85 or later** (only required to build from source).
+- **Latest stable Rust** (only required to build from source; install via [rustup](https://rustup.rs) and run `rustup default stable`).
 - **macOS**, **Linux**, or **Windows**.
 
 ## From source

@@ -3,7 +3,6 @@ title = "Portless"
 description = "Rust-native local development platform that replaces port numbers with stable HTTPS hostnames."
 authors = ["Muhammad Fiaz <contact@muhammadfiaz.com>"]
 language = "en"
-multilingual = false
 src = "src"
 
 [output.html]

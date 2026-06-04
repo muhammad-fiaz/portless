@@ -34,7 +34,7 @@ error: ...
 ## Environment
 
 - **OS**: [e.g. macOS 14.4, Ubuntu 24.04, Windows 11]
-- **Rust version** (`rustc --version`): [e.g. rustc 1.85.0]
+- **Rust version** (`rustc --version`): [e.g. output of `rustc --version`]
 - **Portless version** (`portless --version`): [e.g. portless 0.0.0]
 - **Portless install method**: [e.g. `cargo install`, source build, pre-built binary]
 - **Framework / dev server** (if applicable): [e.g. Next.js 14.3, Vite 5.0]
