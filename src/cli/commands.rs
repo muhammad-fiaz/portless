@@ -1077,7 +1077,9 @@ async fn cmd_doctor(fix: bool, paths: Paths) -> Result<()> {
 
     // 3. Proxy reachability on port 443 (or whatever the configured port is).
     print!("[3/6] proxy reachable on :443 ... ");
-    let state = crate::state::proxy_state::Store::open(paths.clone()).await.ok();
+    let state = crate::state::proxy_state::Store::open(paths.clone())
+        .await
+        .ok();
     let port = state
         .as_ref()
         .map(|s| futures::executor::block_on(s.snapshot()).port)

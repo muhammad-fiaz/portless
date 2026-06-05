@@ -192,7 +192,9 @@ impl Error {
             }
             Self::ProcessNotFound(_) | Self::Process(_) => StatusCode::BAD_GATEWAY,
             Self::Bind { .. } | Self::AddrParse(_) => StatusCode::SERVICE_UNAVAILABLE,
-            Self::Cancelled => StatusCode::from_u16(499).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+            Self::Cancelled => {
+                StatusCode::from_u16(499).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR)
+            }
             _ => StatusCode::INTERNAL_SERVER_ERROR,
         }
     }
