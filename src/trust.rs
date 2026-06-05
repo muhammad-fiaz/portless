@@ -159,10 +159,10 @@ fn is_ca_trusted_at(_ca_path: &std::path::Path, cert_pem: &str) -> Result<bool> 
             "/etc/pki/tls/certs/ca-bundle.crt",
         ];
         for path in candidates {
-            if let Ok(contents) = std::fs::read_to_string(path) {
-                if contents.contains(subject_marker) {
-                    return Ok(true);
-                }
+            if let Ok(contents) = std::fs::read_to_string(path)
+                && contents.contains(subject_marker)
+            {
+                return Ok(true);
             }
         }
         Ok(false)
