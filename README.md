@@ -90,21 +90,6 @@ portless myapp next dev
 portless
 ```
 
-## Inspiration
-
-Inspired by [Portless by Vercel Labs](https://github.com/vercel-labs/portless).
-
-Portless introduced stable localhost development URLs.
-
-This project is an **independent Rust-native implementation** focused on:
-
-- **Reliability** - file-backed route registry, panic isolation, automatic recovery.
-- **Concurrency** - Tokio + DashMap + ArcSwap, no global locks in hot paths.
-- **Performance** - `release` profile uses LTO, opt-level 3, codegen-units 1.
-- **Security** - `#![forbid(unsafe_code)]`, `0600` perms on private keys, SNI cert isolation.
-- **Modern networking** - rustls, HTTP/1.1, HTTP/2 with ALPN, optional HTTP/3 (QUIC).
-- **Cross-platform** - Linux, macOS, Windows, with native OS service integration.
-
 ## Features
 
 <details>
