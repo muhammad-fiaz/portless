@@ -36,6 +36,5 @@ If you are looking for the original TypeScript implementation, please visit
 
 ## Other credits
 
-- The Rust community - for an unparalleled ecosystem of high-quality crates.
 - All contributors - see [CONTRIBUTING.md](https://github.com/muhammad-fiaz/portless/blob/main/CONTRIBUTING.md).
 - The maintainer, [Muhammad Fiaz](https://muhammad-fiaz.github.io/portless).

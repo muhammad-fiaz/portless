@@ -107,6 +107,9 @@ This project is an **independent Rust-native implementation** focused on:
 
 ## Features
 
+<details>
+<summary><strong>Click to expand the full feature list</strong></summary>
+
 - **Stable local URLs** - `https://myapp.localhost` instead of `http://localhost:3000`.
 - **Automatic HTTPS** - local CA, per-hostname certs, automatic trust.
 - **HTTP/2 by default** - multiplexes requests over a single connection.
@@ -126,6 +129,8 @@ This project is an **independent Rust-native implementation** focused on:
 - **Tailscale sharing** - `--tailscale` for tailnet URLs, `--funnel` for public.
 - **Auto /etc/hosts sync** - Safari compatibility, opt-out with `PORTLESS_SYNC_HOSTS=0`.
 - **Prometheus metrics** - `portless list` and `/api/metrics`.
+
+</details>
 
 ## Commands
 
@@ -252,5 +257,4 @@ This project is licensed under the Apache-2.0 License. See the [LICENSE](LICENSE
 ## Acknowledgements
 
 - **[Portless by Vercel Labs](https://github.com/vercel-labs/portless)** - the original concept and design that inspired this project. This Rust reimplementation is independent and not a fork.
-- The Rust community - for an unparalleled ecosystem of high-quality crates.
 - All contributors - see [CONTRIBUTING.md](CONTRIBUTING.md).
