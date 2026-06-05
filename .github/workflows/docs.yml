@@ -29,7 +29,7 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
   RUSTDOCFLAGS: "-D warnings"
-  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  GH_TOKEN: ${{ secrets.GH_TOKEN }}
 
 jobs:
   build:
