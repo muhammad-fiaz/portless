@@ -48,7 +48,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -107,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Bundle install.sh / install.ps1 / install.bat
         run: |
           mkdir -p dist
@@ -128,7 +128,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download Linux amd64 artifact
         uses: actions/download-artifact@v4
@@ -158,7 +158,7 @@ jobs:
           Section: utils
           Priority: optional
           Architecture: amd64
-          Maintainer: Muhammad Fiaz <contact@muhammadfiaz.com>
+          Maintainer: ${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>
           Description: Portless - Stable, named .localhost URLs for local development
            Portless is a Rust-native local development platform that gives every
            dev server a stable https://<name>.<tld> URL. Inspired by
@@ -171,7 +171,7 @@ jobs:
 
             * Release ${VERSION}
 
-           -- Muhammad Fiaz <contact@muhammadfiaz.com>  $(date -R)
+           -- ${GITHUB_ACTOR} <${GITHUB_ACTOR}@users.noreply.github.com>  $(date -R)
           EOF
 
           cd debian && tar -czf ../portless_${VERSION}_amd64.deb.gz DEBIAN usr
@@ -188,7 +188,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Download all artifacts
         uses: actions/download-artifact@v4
@@ -316,5 +316,32 @@ jobs:
             artifacts/**/install.bat
             artifacts/**/installers.sha256
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-crates:
+    name: publish to crates.io
+    runs-on: ubuntu-latest
+    needs: [build, release]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Show toolchain
+        run: |
+          rustc --version
+          cargo --version
+
+      - name: Verify package (cargo publish --dry-run)
+        run: cargo publish --dry-run --locked --all-features
+
+      - name: Publish to crates.io
+        run: cargo publish --locked --all-features
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
