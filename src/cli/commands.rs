@@ -138,6 +138,12 @@ pub enum CommandKind {
     },
     /// Print version information.
     Version,
+    /// Diagnose common configuration and runtime issues.
+    Doctor {
+        /// Attempt to auto-fix detected issues (e.g. clear stale Netlify state).
+        #[arg(long)]
+        fix: bool,
+    },
     /// Catch `portless <name> <cmd...>` (shorthand for `portless named <name> <cmd...>`).
     ///
     /// This allows the TypeScript-compatible syntax:
@@ -241,6 +247,7 @@ pub async fn run(cli: Cli) -> Result<()> {
             println!("portless {}", env!("CARGO_PKG_VERSION"));
             Ok(())
         }
+        Some(CommandKind::Doctor { fix }) => cmd_doctor(fix, paths).await,
 
         Some(CommandKind::Positional(args)) => {
             // `portless <name> [cmd...]` — treat the first positional as the
@@ -612,6 +619,50 @@ fn build_command_for(cmd: &[String], port: u16, lan_mode: bool) -> Vec<String> {
     out
 }
 
+/// Inspect `.netlify/state.json` in `cwd` and remove it if it references a
+/// site id. The presence of a stale file is harmless for most commands but
+/// breaks `@netlify/config` (used by `@astrojs/netlify`) because it tries to
+/// call the Netlify API and the site may no longer exist. Removing the file
+/// lets astro/vite continue with a fresh `netlify link` flow.
+///
+/// Only acts when:
+/// - the file exists,
+/// - it parses as JSON with a `siteId` string field,
+/// - portless is *not* being run in a CI environment (no `CI=true`),
+/// - the user has not set `PORTLESS_KEEP_NETLIFY_STATE=1`.
+///
+/// Logs a one-line notice to stderr so the action is visible.
+fn maybe_clear_stale_netlify_state(cwd: &std::path::Path) {
+    if std::env::var("CI").ok().as_deref() == Some("true") {
+        return;
+    }
+    let p = cwd.join(".netlify").join("state.json");
+    if !p.exists() {
+        return;
+    }
+    let raw = match std::fs::read_to_string(&p) {
+        Ok(s) => s,
+        Err(_) => return,
+    };
+    let v: serde_json::Value = match serde_json::from_str(&raw) {
+        Ok(v) => v,
+        Err(_) => return,
+    };
+    if v.get("siteId").and_then(|x| x.as_str()).is_none() {
+        return;
+    }
+    match std::fs::remove_file(&p) {
+        Ok(()) => {
+            eprintln!(
+                "portless: cleared stale .netlify/state.json (re-link with `netlify link` if needed)."
+            );
+        }
+        Err(e) => {
+            eprintln!("portless: could not clear .netlify/state.json: {e}");
+        }
+    }
+}
+
 /// Register a route, spawn a child, wait for exit, unregister.
 #[allow(clippy::too_many_arguments)]
 async fn register_spawn_wait(
@@ -698,6 +749,14 @@ async fn cmd_run(
 
     let cwd = std::env::current_dir()?;
     let cfg = PortlessConfig::load(&cwd).await?;
+    // Best-effort: clear a stale `.netlify/state.json` referencing a site
+    // that is no longer in the user's Netlify account, which makes
+    // `astro dev` (and similar @netlify/config-using tools) crash with
+    // "site not found" the moment the proxy is started. Opt out with
+    // `PORTLESS_KEEP_NETLIFY_STATE=1`.
+    if std::env::var("PORTLESS_KEEP_NETLIFY_STATE").ok().as_deref() != Some("1") {
+        maybe_clear_stale_netlify_state(&cwd);
+    }
     let base_name = match name {
         Some(n) => sanitize_label(&n),
         None => sanitize_label(
@@ -752,17 +811,29 @@ async fn cmd_run(
     let final_args = final_command_line[1..].to_vec();
 
     let code = register_spawn_wait(
-        full_host,
+        full_host.clone(),
         app_port,
         final_program,
         final_args,
         cwd,
         env,
         Env::load().force(),
-        paths,
+        paths.clone(),
     )
     .await?;
     if code != 0 {
+        eprintln!();
+        eprintln!("portless: the dev command exited with code {code}.");
+        eprintln!();
+        eprintln!("common causes and fixes:");
+        eprintln!("  - the dev server is misconfigured (e.g. .netlify/state.json references a");
+        eprintln!("    site that no longer exists in your Netlify account). run");
+        eprintln!("    `portless doctor --fix` to detect and auto-repair.");
+        eprintln!("  - a port is already in use. run `portless list` to see active routes and");
+        eprintln!("    `portless prune` to clean up dead entries.");
+        eprintln!("  - the CA is not trusted. run `portless trust` to install it.");
+        eprintln!();
+        eprintln!("for more help: https://github.com/muhammad-fiaz/portless/issues");
         std::process::exit(code);
     }
     Ok(())
@@ -955,6 +1026,180 @@ async fn cmd_untrust(paths: Paths) -> Result<()> {
     let ca = crate::tls::Ca::open(&paths).await?;
     crate::trust::uninstall_ca(&ca).await?;
     println!("untrusted local CA");
+    Ok(())
+}
+
+async fn cmd_doctor(fix: bool, paths: Paths) -> Result<()> {
+    use crate::common::net;
+    use std::path::PathBuf;
+
+    println!("portless doctor");
+    println!("================");
+    println!();
+
+    let mut problems = 0usize;
+
+    // 1. Local CA.
+    print!("[1/6] local CA ... ");
+    match crate::tls::Ca::open(&paths).await {
+        Ok(ca) => {
+            let fp = &ca.fingerprint;
+            println!("ok (fingerprint: {}...)", &fp[..fp.len().min(23)]);
+        }
+        Err(e) => {
+            problems += 1;
+            println!("FAIL ({e})");
+            println!("        fix: the CA will be created automatically on first proxy start.");
+            println!("             run `portless proxy start` to bootstrap it.");
+        }
+    }
+
+    // 2. CA trust.
+    print!("[2/6] CA trusted by system ... ");
+    match crate::tls::Ca::open(&paths).await {
+        Ok(ca) => match crate::trust::is_ca_trusted(&ca) {
+            Ok(true) => println!("ok"),
+            Ok(false) => {
+                problems += 1;
+                println!("NOT TRUSTED");
+                println!("        fix: run `portless trust` to install the local CA.");
+            }
+            Err(e) => {
+                problems += 1;
+                println!("FAIL ({e})");
+                println!("        fix: run `portless trust` to install the local CA.");
+            }
+        },
+        Err(_) => {
+            println!("skipped (no CA yet)");
+        }
+    }
+
+    // 3. Proxy reachability on port 443 (or whatever the configured port is).
+    print!("[3/6] proxy reachable on :443 ... ");
+    let state = crate::state::proxy_state::Store::open(paths.clone()).await.ok();
+    let port = state
+        .as_ref()
+        .map(|s| futures::executor::block_on(s.snapshot()).port)
+        .unwrap_or(443);
+    let addr: std::net::SocketAddr = format!("127.0.0.1:{port}")
+        .parse()
+        .unwrap_or_else(|_| "127.0.0.1:443".parse().unwrap());
+    match net::tcp_probe(addr, std::time::Duration::from_millis(500)) {
+        Ok(true) => println!("ok (port {port} open)"),
+        Ok(false) => {
+            problems += 1;
+            println!("DOWN (port {port} closed)");
+            println!("        fix: run `portless proxy start` to start the proxy.");
+        }
+        Err(e) => {
+            problems += 1;
+            println!("FAIL ({e})");
+            println!("        fix: run `portless proxy start` to start the proxy.");
+        }
+    }
+
+    // 4. hosts file integration.
+    print!("[4/6] hosts file entries ... ");
+    match hosts::list().await {
+        Ok(entries) if !entries.is_empty() => {
+            println!("ok ({} entries)", entries.len());
+        }
+        Ok(_) => {
+            println!("none (portless will write them on demand)");
+        }
+        Err(e) => {
+            problems += 1;
+            println!("FAIL ({e})");
+        }
+    }
+
+    // 5. Common project gotchas in cwd.
+    print!("[5/6] project sanity ... ");
+    let cwd = std::env::current_dir().ok();
+    let mut notes: Vec<String> = Vec::new();
+    if let Some(cwd) = cwd.as_ref() {
+        let netlify_state: PathBuf = cwd.join(".netlify").join("state.json");
+        if netlify_state.exists()
+            && let Ok(raw) = std::fs::read_to_string(&netlify_state)
+            && let Ok(v) = serde_json::from_str::<serde_json::Value>(&raw)
+            && let Some(sid) = v.get("siteId").and_then(|x| x.as_str())
+        {
+            notes.push(format!(
+                "detected `.netlify/state.json` referencing site `{sid}`. \
+                 if astro/vite/netlify dev fails with 'site not found', \
+                 delete this file or run `netlify link`."
+            ));
+            if fix {
+                match std::fs::remove_file(&netlify_state) {
+                    Ok(()) => {
+                        notes.push("  [fix] removed stale .netlify/state.json".to_string());
+                    }
+                    Err(e) => {
+                        problems += 1;
+                        notes.push(format!("  [fix] failed to remove: {e}"));
+                    }
+                }
+            }
+        }
+        let env_files = [".env", ".env.local", ".env.development"];
+        for ef in env_files {
+            let p = cwd.join(ef);
+            if p.exists()
+                && let Ok(raw) = std::fs::read_to_string(&p)
+                && raw.lines().any(|l| l.trim_start().starts_with("PORT="))
+            {
+                notes.push(format!(
+                    "found `PORT=` in `{ef}`. portless sets PORT for the child \
+                     process; remove or rename that line to avoid conflicts."
+                ));
+            }
+        }
+    }
+    if notes.is_empty() {
+        println!("ok");
+    } else {
+        for n in &notes {
+            println!("  - {n}");
+        }
+    }
+
+    // 6. Up to 5 stale routes / dead PIDs.
+    print!("[6/6] active routes ... ");
+    let registry = crate::state::Registry::open(paths.clone()).await.ok();
+    match registry {
+        Some(reg) => {
+            let entries = reg.snapshot().routes;
+            let dead: Vec<_> = entries
+                .iter()
+                .filter(|r| r.pid != 0 && !crate::process::pid_is_alive(r.pid))
+                .collect();
+            if entries.is_empty() {
+                println!("none registered");
+            } else if dead.is_empty() {
+                println!("ok ({} live)", entries.len());
+            } else {
+                problems += 1;
+                println!("{} stale entries", dead.len());
+                for r in &dead {
+                    println!(
+                        "        - {} (pid {} no longer alive) -- run `portless prune`",
+                        r.hostname, r.pid
+                    );
+                }
+            }
+        }
+        None => {
+            println!("skipped (no state yet)");
+        }
+    }
+
+    println!();
+    if problems == 0 {
+        println!("all good.");
+    } else {
+        println!("found {problems} problem(s). re-run with `--fix` to attempt auto-repair.");
+    }
     Ok(())
 }
 

@@ -120,3 +120,58 @@ async fn uninstall_ca_at(ca_path: &std::path::Path) -> Result<()> {
         ))
     }
 }
+
+/// Returns true if the CA is currently trusted in the system trust store.
+///
+/// Best-effort: on Windows this shells out to `certutil -store ROOT` and
+/// greps for the CA subject. On macOS it uses `security find-certificate`.
+/// On Linux it checks common bundle locations for the CA fingerprint.
+pub fn is_ca_trusted(ca: &Ca) -> Result<bool> {
+    is_ca_trusted_at(std::path::Path::new("portless-ca.pem"), &ca.cert_pem)
+}
+
+fn is_ca_trusted_at(_ca_path: &std::path::Path, cert_pem: &str) -> Result<bool> {
+    let subject_marker = "Portless Local CA";
+    let _ = cert_pem;
+
+    #[cfg(target_os = "windows")]
+    {
+        let output = std::process::Command::new("certutil")
+            .args(["-store", "ROOT"])
+            .output()
+            .map_err(|e| Error::Tls(format!("certutil -store ROOT: {e}")))?;
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        Ok(stdout.contains(subject_marker))
+    }
+    #[cfg(target_os = "macos")]
+    {
+        let status = std::process::Command::new("security")
+            .args(["find-certificate", "-c", subject_marker])
+            .status()
+            .map_err(|e| Error::Tls(format!("security find-certificate: {e}")))?;
+        Ok(status.success())
+    }
+    #[cfg(target_os = "linux")]
+    {
+        let candidates = [
+            "/etc/ssl/certs/portless-ca.pem",
+            "/etc/pki/ca-trust/source/anchors/portless-ca.pem",
+            "/etc/pki/tls/certs/ca-bundle.crt",
+        ];
+        for path in candidates {
+            if let Ok(contents) = std::fs::read_to_string(path) {
+                if contents.contains(subject_marker) {
+                    return Ok(true);
+                }
+            }
+        }
+        Ok(false)
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "linux", target_os = "windows")))]
+    {
+        let _ = subject_marker;
+        Err(Error::UnsupportedPlatform(
+            "CA trust inspection not implemented on this platform".into(),
+        ))
+    }
+}

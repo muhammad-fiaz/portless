@@ -167,6 +167,36 @@ impl Error {
         Self::Proxy(s.into())
     }
 
+    /// Map this error to the most appropriate HTTP status code for clients
+    /// hitting the proxy. Used by the proxy to return semantically correct
+    /// responses (e.g. 400 for malformed requests, 404 for unknown routes,
+    /// 502 for upstream failures) instead of a blanket 500.
+    pub fn http_status(&self) -> http::StatusCode {
+        use http::StatusCode;
+        match self {
+            Self::InvalidHostname(_) | Self::InvalidTld(_) | Self::Hostname(_) => {
+                StatusCode::BAD_REQUEST
+            }
+            Self::Proxy(msg) if msg.eq_ignore_ascii_case("missing Host header") => {
+                StatusCode::BAD_REQUEST
+            }
+            Self::RouteNotFound(_) => StatusCode::NOT_FOUND,
+            Self::RouteExists(_) => StatusCode::CONFLICT,
+            Self::PortInUse(_) | Self::PortNotAssignable(..) | Self::NoFreePort(..) => {
+                StatusCode::SERVICE_UNAVAILABLE
+            }
+            Self::LoopDetected(_) => StatusCode::LOOP_DETECTED,
+            Self::Timeout(_) => StatusCode::GATEWAY_TIMEOUT,
+            Self::Network(_) | Self::Tls(_) | Self::Cert(_) | Self::Dns(_) => {
+                StatusCode::BAD_GATEWAY
+            }
+            Self::ProcessNotFound(_) | Self::Process(_) => StatusCode::BAD_GATEWAY,
+            Self::Bind { .. } | Self::AddrParse(_) => StatusCode::SERVICE_UNAVAILABLE,
+            Self::Cancelled => StatusCode::from_u16(499).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR),
+            _ => StatusCode::INTERNAL_SERVER_ERROR,
+        }
+    }
+
     /// Create a TLS error from a static string.
     pub fn tls<S: Into<String>>(s: S) -> Self {
         Self::Tls(s.into())
@@ -309,3 +339,51 @@ pub fn other<S: Into<String>>(s: S) -> Error {
 
 #[allow(unused)]
 const _: Option<PathBuf> = None;
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use http::StatusCode;
+
+    #[test]
+    fn missing_host_header_is_bad_request() {
+        let e = Error::proxy("missing Host header");
+        assert_eq!(e.http_status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[test]
+    fn route_not_found_is_404() {
+        let e = Error::RouteNotFound("nope.localhost".into());
+        assert_eq!(e.http_status(), StatusCode::NOT_FOUND);
+    }
+
+    #[test]
+    fn invalid_hostname_is_bad_request() {
+        let e = Error::InvalidHostname("bad..name".into());
+        assert_eq!(e.http_status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[test]
+    fn upstream_network_is_bad_gateway() {
+        let e = Error::Network("connection refused".into());
+        assert_eq!(e.http_status(), StatusCode::BAD_GATEWAY);
+    }
+
+    #[test]
+    fn timeout_is_gateway_timeout() {
+        let e = Error::Timeout(std::time::Duration::from_secs(5));
+        assert_eq!(e.http_status(), StatusCode::GATEWAY_TIMEOUT);
+    }
+
+    #[test]
+    fn loop_detected_is_508() {
+        let e = Error::LoopDetected(11);
+        assert_eq!(e.http_status(), StatusCode::LOOP_DETECTED);
+    }
+
+    #[test]
+    fn unknown_defaults_to_500() {
+        let e = Error::Config("oops".into());
+        assert_eq!(e.http_status(), StatusCode::INTERNAL_SERVER_ERROR);
+    }
+}

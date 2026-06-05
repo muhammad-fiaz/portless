@@ -97,6 +97,25 @@ pub fn detect_local_ipv4() -> Option<std::net::Ipv4Addr> {
     }
 }
 
+/// Synchronously probe whether a TCP socket is accepting connections.
+///
+/// Returns `Ok(true)` if the port is open, `Ok(false)` if the connection was
+/// refused or timed out, and `Err(_)` for unexpected I/O errors.
+pub fn tcp_probe(addr: std::net::SocketAddr, timeout: std::time::Duration) -> Result<bool> {
+    use std::net::TcpStream;
+    let _ = timeout;
+    // A fast path: try to connect. If it succeeds, the port is open. If the
+    // OS reports "connection refused" the port is closed. Anything else is an
+    // error.
+    match TcpStream::connect_timeout(&addr, timeout) {
+        Ok(_s) => Ok(true),
+        Err(e) if e.kind() == std::io::ErrorKind::ConnectionRefused => Ok(false),
+        Err(e) if e.kind() == std::io::ErrorKind::TimedOut => Ok(false),
+        Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => Ok(false),
+        Err(e) => Err(Error::Network(format!("probe {addr}: {e}"))),
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

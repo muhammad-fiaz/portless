@@ -130,6 +130,25 @@ pub async fn clean() -> Result<()> {
         .map_err(|e| Error::Hosts(format!("write {}: {e}", path.display())))
 }
 
+/// Read the current Portless block out of the hosts file and return the
+/// entries, if any. Returns an empty vector if the file has no Portless
+/// block.
+pub async fn list() -> Result<Vec<HostsLine>> {
+    let path = hosts_path();
+    let content = match tokio::fs::read_to_string(&path).await {
+        Ok(s) => s,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => {
+            return Err(Error::Hosts(format!("read {}: {e}", path.display())));
+        }
+    };
+    let (_, _, block) = match HostsBlock::extract(&content) {
+        Some(v) => v,
+        None => return Ok(Vec::new()),
+    };
+    Ok(block.lines)
+}
+
 fn replace_block(content: &str, entries: &[HostsLine]) -> String {
     let (start, end, _) = match HostsBlock::extract(content) {
         Some(v) => v,

@@ -173,7 +173,7 @@ async fn handle_conn(
                     async move {
                         match h.handle(req).await {
                             Ok(resp) => Ok::<_, std::convert::Infallible>(resp),
-                            Err(e) => Ok(error500(&e)),
+                            Err(e) => Ok(error_response(&e)),
                         }
                     }
                 });
@@ -198,7 +198,7 @@ async fn handle_conn(
         async move {
             match h.handle(req).await {
                 Ok(resp) => Ok::<_, std::convert::Infallible>(resp),
-                Err(e) => Ok(error500(&e)),
+                Err(e) => Ok(error_response(&e)),
             }
         }
     });
@@ -211,13 +211,51 @@ async fn handle_conn(
     Ok(())
 }
 
-fn error500(e: &Error) -> http::Response<http_body_util::Full<bytes::Bytes>> {
-    let body = format!("500 Internal Server Error\n\n{e}");
+fn error_response(e: &Error) -> http::Response<http_body_util::Full<bytes::Bytes>> {
+    let status = e.http_status();
+    let reason = status.canonical_reason().unwrap_or("Error");
+    let safe_msg = sanitize_error_message(e);
+    let title = reason.to_string();
+    let html = format!(
+        r#"<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><title>{title}</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  body {{ font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+          padding: 4rem 1.5rem; max-width: 640px; margin: 0 auto; color: #1f2937;
+          line-height: 1.5; }}
+  h1 {{ font-size: 1.5rem; margin: 0 0 1rem; font-weight: 600; }}
+  p {{ margin: 0 0 1rem; }}
+  code {{ background: #f3f4f6; padding: 0.1rem 0.35rem; border-radius: 0.25rem;
+          font-size: 0.9em; }}
+  .hint {{ background: #f9fafb; border-left: 3px solid #d1d5db; padding: 0.75rem 1rem;
+           border-radius: 0.25rem; font-size: 0.9em; color: #4b5563; }}
+</style></head>
+<body>
+<h1>{title}</h1>
+<p>{safe_msg}</p>
+<div class="hint">
+  If you are the developer: the dev server backing this route may be down, the
+  route may not be registered, or this proxy may be misconfigured.
+  Run <code>portless list</code> to inspect registered routes, or
+  <code>portless logs</code> to see proxy logs.
+</div>
+</body></html>"#
+    );
     http::Response::builder()
-        .status(http::StatusCode::INTERNAL_SERVER_ERROR)
-        .header("content-type", "text/plain; charset=utf-8")
-        .body(http_body_util::Full::new(bytes::Bytes::from(body)))
+        .status(status)
+        .header("content-type", "text/html; charset=utf-8")
+        .header("cache-control", "no-store")
+        .body(http_body_util::Full::new(bytes::Bytes::from(html)))
         .unwrap()
+}
+
+fn sanitize_error_message(e: &Error) -> String {
+    let raw = e.to_string();
+    raw.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
 
 async fn shutdown_signal() {
